@@ -6,37 +6,49 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+//this is for allowing a live terminal search
 //https://api.thecatapi.com/v1/images/search?breed_ids={breed-id}
 //https://api.thecatapi.com/v1/breeds/search?q=sib
 
-const myBreedSearch = new Promise((resolve, reject) => {
-  rl.question("What cat would you like to search for? \n", (catquery) => {
-    resolve(catquery);
-  });
-});
+// const myBreedSearch = new Promise((resolve, reject) => {
+//   rl.question("What cat would you like to search for? \n", (catquery) => {
+//     resolve(catquery);
+//   });
+// });
 
-myBreedSearch.then((data) => {
-  console.log(`searching for ${data}...`);
-  return new Promise((resolve, reject) => {
-    request(`https://api.thecatapi.com/v1/breeds/search?q=${data}`, (error, response, body) => {
-      if (response === undefined) {
-        console.log(`Invalid HTTP address, please correct the URL.`);
-        rl.close();
-        return;
-      }
-      const catObj = JSON.parse(body);
-      if (catObj[0] === undefined) {
-        console.log(`404: cat ${data} not found`);
-        rl.close();
-        return '404: cat not found';
-      }
-      console.log(catObj[0].name, 'cat', '\n',catObj[0].description);
-      // console.log(catObj, data)
-      // resolve (catObj[0].breeds[0].description)
+// myBreedSearch.then((data) => {
+//   console.log(`searching for ${data}...`);
+//   return new Promise((resolve, reject) => {
+//     fetchBreedDescription(data);
+//     rl.close();
+//   });
+  
+// });
+
+
+const fetchBreedDescription = (breedName, callback) => {
+  request(`https://api.thecatapi.com/v1/breeds/search?q=${breedName}`, (error, response, body) => {
+    if (response === undefined) {
+      // console.log(`Invalid HTTP address, please correct the URL.`);
       rl.close();
-    });
+      callback('hello I am an error', null);
+      return Error;
+    }
+    const catObj = JSON.parse(body);
+    if (catObj[0] === undefined) {
+      // console.log(`404: cat ${breedName} not found`);
+      rl.close();
+      callback('404: cat not found', null);
+      return '404: cat not found';
+    }
+    callback(null, catObj[0].description);
+    // console.log(catObj[0].name, 'cat', '\n',catObj[0].description);
+    rl.close();
+    return (catObj[0].name, 'cat', '\n',catObj[0].description);
   });
-});
+};
+
+module.exports = { fetchBreedDescription };
 
 // if (response.statusCode !== 200) {
 //   console.log(`Invalid HTTP address, please correct the URL. Error code: ${response.statusCode}`)
